@@ -1,19 +1,5 @@
 [
   {
-    "title": "无间道",
-    "year": 2002,
-    "category": "data",
-    "rating": 9.3,
-    "tags": [
-      "港片",
-      "犯罪",
-      "卧底"
-    ],
-    "director": "刘伟强、麦兆辉",
-    "actors": "刘德华、梁朝伟、黄秋生、曾志伟",
-    "genre": "剧情 / 犯罪 / 惊悚"
-  },
-  {
     "title": "阅后即焚 Burn After Reading",
     "year": 2008,
     "category": "comedy",
@@ -312,6 +298,20 @@
     "director": "托尼·斯科特",
     "actors": "汤姆·克鲁斯 / 凯莉·麦吉利斯 / 方·基默",
     "genre": "动作 / 剧情"
+  },
+  {
+    "title": "无间道",
+    "year": 2002,
+    "category": "drama",
+    "rating": 9.3,
+    "tags": [
+      "港片",
+      "犯罪",
+      "卧底"
+    ],
+    "director": "刘伟强、麦兆辉",
+    "actors": "刘德华、梁朝伟、黄秋生、曾志伟",
+    "genre": "剧情 / 犯罪 / 惊悚"
   },
   {
     "title": "大地惊雷 True Grit",
