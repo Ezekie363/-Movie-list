@@ -6,10 +6,38 @@ DATA_DIR = "data"
 OUTPUT = "docs/movies.json"
 
 movies = []
+existing_order = {}
+
+if os.path.exists(OUTPUT):
+    try:
+        with open(OUTPUT, "r", encoding="utf-8") as f:
+            for index, movie in enumerate(json.load(f)):
+                key = (movie.get("title", ""), movie.get("year", 0))
+                existing_order[key] = index
+    except Exception as e:
+        print(f"⚠️ 无法读取现有排序: {e}")
 
 def extract(pattern, text, default=""):
     match = re.search(pattern, text, re.MULTILINE)
     return match.group(1).strip() if match else default
+
+def extract_synopsis(text):
+    match = re.search(
+        r"^##\s*(?:📖\s*)?简介\s*$\n(.*?)(?=^\s*---\s*$|^##|\Z)",
+        text,
+        re.MULTILINE | re.DOTALL
+    )
+
+    if not match:
+        return "无"
+
+    synopsis = re.sub(r"\s+", " ", match.group(1)).strip()
+    placeholders = {
+        "（简要剧情介绍，避免剧透）",
+        "(简要剧情介绍，避免剧透)"
+    }
+
+    return synopsis if synopsis and synopsis not in placeholders else "无"
 
 for root, _, files in os.walk(DATA_DIR):
     category = os.path.basename(root)
@@ -72,6 +100,7 @@ for root, _, files in os.walk(DATA_DIR):
         director = extract(r"[-*]\s*导演[:：]\s*(.+)", content, "未知")
         actors = extract(r"[-*]\s*主演[:：]\s*(.+)", content, "未知")
         genre = extract(r"[-*]\s*类型[:：]\s*(.+)", content, "未知")
+        synopsis = extract_synopsis(content)
 
         # =========================
         # 防止空标题写入垃圾数据
@@ -88,7 +117,8 @@ for root, _, files in os.walk(DATA_DIR):
             "tags": tags,
             "director": director,
             "actors": actors,
-            "genre": genre
+            "genre": genre,
+            "synopsis": synopsis
         })
 
         print(f"✅ 成功解析: {title}")
@@ -96,6 +126,9 @@ for root, _, files in os.walk(DATA_DIR):
 # =========================
 # 输出 JSON
 # =========================
+if existing_order:
+    movies.sort(key=lambda m: existing_order.get((m["title"], m["year"]), len(existing_order)))
+
 os.makedirs("docs", exist_ok=True)
 
 with open(OUTPUT, "w", encoding="utf-8") as f:

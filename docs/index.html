@@ -2,84 +2,409 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Movie List</title>
 
   <style>
-    body { 
-      font-family: Arial; 
-      margin: 0;
-      padding: 0;
-      background: #fff;
+    :root {
+      --page-bg: #f4ead7;
+      --text: #252018;
+      --muted: rgba(37, 32, 24, 0.66);
+      --soft: rgba(37, 32, 24, 0.68);
+      --glass: rgba(255, 255, 255, 0.48);
+      --glass-strong: rgba(255, 255, 255, 0.7);
+      --glass-border: rgba(112, 91, 58, 0.2);
+      --glass-edge: rgba(255, 255, 255, 0.86);
+      --shadow: 0 18px 42px rgba(112, 91, 58, 0.16);
+      --accent: #9b4d4d;
+      --accent-2: #4d766f;
+      --amber: #9a6b22;
+      --radius: 8px;
+      --motion: 220ms ease;
     }
 
-    /* ✅ 新增：统一容器（关键修复） */
-    .container {
-      max-width: 800px;
-      margin: auto;
-      padding: 0 10px;
-    }
-
-    input { 
-      width: 100%;
-      padding: 10px; 
-      margin: 10px 0; 
+    * {
       box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      margin: 0;
+      padding: 0 0 36px;
+      color: var(--text);
+      background: var(--page-bg);
+      background-attachment: fixed;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 34px 18px 0;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 24px 0 18px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 56px;
+      font-weight: 900;
+      letter-spacing: 0;
+      color: var(--text);
+      text-shadow: 0 8px 24px rgba(112, 91, 58, 0.12);
+    }
+
+    .subtitle {
+      max-width: 720px;
+      margin: 0 auto 6px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .search-panel {
+      position: sticky;
+      top: 10px;
+      z-index: 2;
+      padding: 12px;
+      margin: 4px 0 18px;
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--glass-strong), var(--glass));
+      box-shadow: var(--shadow), inset 0 1px 0 var(--glass-edge);
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+    }
+
+    input,
+    .controls select {
+      appearance: none;
+      width: 100%;
+      min-height: 46px;
+      padding: 0 14px;
+      color: var(--text);
+      border: 1px solid rgba(112, 91, 58, 0.18);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.42));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+      outline: none;
+      transition: border-color var(--motion), box-shadow var(--motion), background var(--motion);
+    }
+
+    input {
+      margin: 0 0 10px;
+      font-size: 16px;
+    }
+
+    input::placeholder {
+      color: rgba(37, 32, 24, 0.38);
+    }
+
+    input:focus,
+    .controls select:focus {
+      border-color: rgba(77, 118, 111, 0.52);
+      box-shadow:
+        0 0 0 3px rgba(77, 118, 111, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.86);
+    }
+
+    .controls select {
+      flex: 1;
+      color-scheme: light;
+      cursor: pointer;
     }
 
     .controls {
       display: flex;
       gap: 10px;
-      margin-bottom: 10px;
       width: 100%;
     }
 
-    .controls select {
-      flex: 1;
-      padding: 8px;
+    .result-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
     }
 
-    .movie { 
-      padding: 12px; 
-      border-bottom: 1px solid #ccc; 
-      border-radius: 8px;
-      margin: 10px 0;
-      background: #f5f5f5;
+    .movie {
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      padding: 16px;
+      border: 1px solid rgba(112, 91, 58, 0.18);
+      border-radius: var(--radius);
+      margin: 12px 0;
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.34));
+      box-shadow: 0 15px 34px rgba(112, 91, 58, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(20px) saturate(150%);
+      -webkit-backdrop-filter: blur(20px) saturate(150%);
       cursor: pointer;
+      transition: transform var(--motion), border-color var(--motion), background var(--motion), box-shadow var(--motion);
     }
 
-    .title { 
-      font-weight: bold; 
-      font-size: 16px;
+    .movie::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      z-index: -1;
+      background:
+        linear-gradient(105deg, transparent 0%, rgba(255, 255, 255, 0.32) 34%, transparent 56%);
+      opacity: 0;
+      transform: translateX(-24%);
+      transition: opacity var(--motion), transform 560ms ease;
+    }
+
+    .movie:hover,
+    .movie.open {
+      transform: translateY(-2px);
+      border-color: rgba(112, 91, 58, 0.28);
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.42));
+      box-shadow: 0 20px 44px rgba(112, 91, 58, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    }
+
+    .movie:hover::before,
+    .movie.open::before {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .movie-main {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: start;
+    }
+
+    .movie-side {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title {
+      font-weight: 800;
+      font-size: 18px;
+      line-height: 1.35;
+      color: var(--text);
+    }
+
+    .rating-pill {
+      min-width: 76px;
+      padding: 7px 10px;
+      border: 1px solid rgba(154, 107, 34, 0.28);
+      border-radius: var(--radius);
+      color: #735019;
+      background: rgba(245, 184, 91, 0.16);
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .chevron {
+      width: 11px;
+      height: 11px;
+      border-right: 2px solid rgba(37, 32, 24, 0.54);
+      border-bottom: 2px solid rgba(37, 32, 24, 0.54);
+      transform: rotate(45deg);
+      transition: transform var(--motion), border-color var(--motion);
+    }
+
+    .movie.open .chevron {
+      border-color: rgba(77, 118, 111, 0.82);
+      transform: rotate(225deg);
     }
 
     .tags span {
-      margin-right: 6px;
-      color: #666;
+      display: inline-block;
+      margin: 8px 6px 0 0;
+      padding: 3px 8px;
+      border: 1px solid rgba(112, 91, 58, 0.14);
+      border-radius: var(--radius);
+      color: rgba(37, 32, 24, 0.62);
+      background: rgba(255, 255, 255, 0.36);
       font-size: 12px;
     }
 
     .details {
-      margin-top: 8px;
-      font-size: 13px;
-      color: #444;
-      display: none;
+      display: grid;
+      grid-template-rows: 0fr;
+      margin-top: 0;
+      color: var(--soft);
+      font-size: 14px;
+      line-height: 1.7;
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: grid-template-rows 260ms ease, opacity var(--motion), transform var(--motion), margin-top var(--motion);
+    }
+
+    .movie.open .details {
+      grid-template-rows: 1fr;
+      margin-top: 14px;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .details-inner {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px 14px;
+    }
+
+    .section-label {
+      margin-top: 12px;
+      color: var(--text);
+      font-weight: 800;
     }
 
     .review {
       margin-top: 8px;
-      padding: 8px;
-      background: #fff;
-      border-radius: 6px;
-      font-size: 12px;
-      border-left: 3px solid #999;
+      padding: 12px;
+      color: rgba(37, 32, 24, 0.76);
+      background: rgba(255, 255, 255, 0.46);
+      border: 1px solid rgba(112, 91, 58, 0.16);
+      border-left: 3px solid rgba(155, 77, 77, 0.64);
+      border-radius: var(--radius);
+      font-size: 13px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
     }
 
-    .subtitle {
+    .synopsis {
+      margin-top: 12px;
+      padding: 11px 12px;
+      color: rgba(37, 32, 24, 0.78);
+      background: rgba(255, 255, 255, 0.4);
+      border: 1px solid rgba(77, 118, 111, 0.2);
+      border-radius: var(--radius);
+      line-height: 1.6;
+    }
+
+    .empty-state {
+      margin: 18px 0;
+      padding: 22px 16px;
+      color: var(--muted);
       text-align: center;
-      font-size: 14px;
-      color: #777;
-      margin-top: -5px;
-      margin-bottom: 15px;
+      border: 1px solid rgba(112, 91, 58, 0.16);
+      border-radius: var(--radius);
+      background: rgba(255, 255, 255, 0.42);
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.74);
+      backdrop-filter: blur(18px) saturate(145%);
+      -webkit-backdrop-filter: blur(18px) saturate(145%);
+    }
+
+    .back-top {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 4;
+      width: 46px;
+      height: 46px;
+      display: grid;
+      place-items: center;
+      color: var(--text);
+      border: 1px solid rgba(112, 91, 58, 0.22);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.44));
+      box-shadow: 0 14px 32px rgba(112, 91, 58, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.86);
+      backdrop-filter: blur(18px) saturate(150%);
+      -webkit-backdrop-filter: blur(18px) saturate(150%);
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(10px);
+      transition: opacity var(--motion), transform var(--motion), border-color var(--motion), box-shadow var(--motion);
+    }
+
+    .back-top.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .back-top:hover,
+    .back-top:focus-visible {
+      border-color: rgba(77, 118, 111, 0.38);
+      box-shadow:
+        0 16px 36px rgba(112, 91, 58, 0.22),
+        0 0 0 3px rgba(77, 118, 111, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92);
+      outline: none;
+    }
+
+    .back-top span {
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1;
+      transform: translateY(-1px);
+    }
+
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+      .search-panel,
+      .movie {
+        background: rgba(255, 252, 246, 0.92);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .container {
+        padding-inline: 12px;
+      }
+
+      .movie-main,
+      .meta-grid {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 38px;
+      }
+
+      .controls {
+        flex-direction: column;
+      }
+
+      .rating-pill {
+        width: fit-content;
+      }
+
+      .movie-side {
+        justify-content: space-between;
+      }
+
+      .back-top {
+        right: 14px;
+        bottom: 14px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      .back-top,
+      .movie,
+      .details,
+      .chevron {
+        transition: none;
+      }
     }
   </style>
 </head>
@@ -88,51 +413,54 @@
 
 <div class="container">
 
-  <!-- 标题 -->
-  <div style="text-align:center;">
-    <h1 style="font-size:42px; font-weight:900; margin-bottom:6px;">
-      🎬 Movie Search
-    </h1>
+  <div class="hero">
+    <h1>🎬 Movie Search</h1>
     <div class="subtitle">Film is life with the dull bits cut out — Alfred Hitchcock</div>
     <div class="subtitle">"电影是人生被剪掉无聊部分后的样子。" — 阿尔弗雷德·希区柯克</div>
   </div>
 
-  <!-- 搜索框 -->
-  <input id="search" placeholder="搜索电影 / 标签..." />
+  <div class="search-panel">
+    <input id="search" placeholder="搜索电影 / 标签..." aria-label="搜索电影或标签" />
 
-  <!-- 筛选栏 -->
-  <div class="controls">
-    <select id="categoryFilter">
-      <option value="">全部大类</option>
-      <option value="action">🎬 动作</option>
-      <option value="romance">💕 爱情</option>
-      <option value="sci-fi">🚀 科幻</option>
-      <option value="comedy">😂 喜剧</option>
-      <option value="animation">🎨 动画</option>
-      <option value="documentary">📝 纪录</option>
-      <option value="family">🧑‍🧑‍🧒 家庭</option>
-      <option value="war">🔫 战争</option>
-      <option value="chinese">🀄️ 中文</option>
-      <option value="drama">🎦 剧情</option>
-    </select>
+    <div class="controls">
+      <select id="categoryFilter" aria-label="选择电影大类">
+        <option value="">全部大类</option>
+        <option value="action">🎬 动作</option>
+        <option value="romance">💕 爱情</option>
+        <option value="sci-fi">🚀 科幻</option>
+        <option value="comedy">😂 喜剧</option>
+        <option value="animation">🎨 动画</option>
+        <option value="documentary">📝 纪录</option>
+        <option value="family">🧑‍🧑‍🧒 家庭</option>
+        <option value="war">🔫 战争</option>
+        <option value="chinese">🀄️ 中文</option>
+        <option value="drama">🎦 剧情</option>
+      </select>
 
-    <select id="tagFilter">
-      <option value="">全部标签</option>
-    </select>
+      <select id="tagFilter" aria-label="选择标签">
+        <option value="">全部标签</option>
+      </select>
 
-    <select id="sortSelect">
-      <option value="">默认排序</option>
-      <option value="rating_desc">评分从高到低</option>
-      <option value="rating_asc">评分从低到高</option>
-      <option value="year_desc">上映时间从新到旧</option>
-      <option value="year_asc">上映时间从旧到新</option>
-    </select>
+      <select id="sortSelect" aria-label="选择排序方式">
+        <option value="">默认排序</option>
+        <option value="rating_desc">评分从高到低</option>
+        <option value="rating_asc">评分从低到高</option>
+        <option value="year_desc">上映时间从新到旧</option>
+        <option value="year_asc">上映时间从旧到新</option>
+      </select>
+    </div>
+
+    <div class="result-meta" id="resultMeta"></div>
   </div>
 
   <!-- 列表 -->
   <div id="list"></div>
 
 </div>
+
+<button class="back-top" id="backTop" type="button" aria-label="回到顶部" title="回到顶部">
+  <span aria-hidden="true">↑</span>
+</button>
 
 <script>
 window.onload = () => {
@@ -141,6 +469,21 @@ window.onload = () => {
   const tagFilter = document.getElementById("tagFilter");
   const sortSelect = document.getElementById("sortSelect");
   const categoryFilter = document.getElementById("categoryFilter");
+  const resultMeta = document.getElementById("resultMeta");
+  const backTop = document.getElementById("backTop");
+
+  const categoryNames = {
+    action: "动作",
+    romance: "爱情",
+    "sci-fi": "科幻",
+    comedy: "喜剧",
+    animation: "动画",
+    documentary: "纪录",
+    family: "家庭",
+    war: "战争",
+    chinese: "中文",
+    drama: "剧情"
+  };
 
   let movies = [];
   let reviews = [];
@@ -157,6 +500,7 @@ window.onload = () => {
     .then(res => res.json())
     .then(data => {
       reviews = data;
+      render();
     });
 
   function initTags() {
@@ -171,6 +515,41 @@ window.onload = () => {
     });
   }
 
+  function escapeHTML(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function escapeLines(value) {
+    return escapeHTML(value).replace(/\n/g, "<br>");
+  }
+
+  function toggleMovie(movieElement) {
+    const willOpen = !movieElement.classList.contains("open");
+
+    document.querySelectorAll(".movie.open").forEach(item => {
+      item.classList.remove("open");
+      item.setAttribute("aria-expanded", "false");
+    });
+
+    if (willOpen) {
+      movieElement.classList.add("open");
+      movieElement.setAttribute("aria-expanded", "true");
+    }
+  }
+
+  function getCategoryName(category) {
+    return categoryNames[category] || category || "未知";
+  }
+
+  function updateBackTop() {
+    backTop.classList.toggle("visible", window.scrollY > 360);
+  }
+
   function render() {
     const keyword = input.value.toLowerCase();
     const selectedTag = tagFilter.value;
@@ -179,11 +558,12 @@ window.onload = () => {
 
     let filtered = movies.filter(m => {
       const title = (m.title || "").toLowerCase();
-      const tags = (m.tags || []);
+      const tags = (m.tags || []).join("").toLowerCase();
+      const synopsis = (m.synopsis || "").toLowerCase();
 
       return (
-        (title.includes(keyword) || tags.join("").includes(keyword)) &&
-        (!selectedTag || tags.includes(selectedTag)) &&
+        (title.includes(keyword) || tags.includes(keyword) || synopsis.includes(keyword)) &&
+        (!selectedTag || (m.tags || []).includes(selectedTag)) &&
         (!selectedCategory || m.category === selectedCategory)
       );
     });
@@ -202,6 +582,15 @@ window.onload = () => {
     }
 
     list.innerHTML = "";
+    resultMeta.innerHTML = `
+      <span>共 ${movies.length} 部</span>
+      <span>当前显示 ${filtered.length} 部</span>
+    `;
+
+    if (filtered.length === 0) {
+      list.innerHTML = "<div class='empty-state'>没有找到匹配的电影</div>";
+      return;
+    }
 
     filtered.forEach(m => {
 
@@ -213,40 +602,59 @@ window.onload = () => {
 
       const div = document.createElement("div");
       div.className = "movie";
+      div.setAttribute("tabindex", "0");
+      div.setAttribute("role", "button");
+      div.setAttribute("aria-expanded", "false");
 
       div.innerHTML = `
-        <div class="title">${m.title} (${m.year})</div>
-        <div>评分：${m.rating}</div>
-
-        <div class="tags">
-          ${(m.tags || []).map(t => `<span>#${t}</span>`).join("")}
+        <div class="movie-main">
+          <div>
+            <div class="title">${escapeHTML(m.title)} (${escapeHTML(m.year)})</div>
+            <div class="tags">
+              ${(m.tags || []).map(t => `<span>#${escapeHTML(t)}</span>`).join("")}
+            </div>
+          </div>
+          <div class="movie-side">
+            <div class="rating-pill">评分 ${escapeHTML(m.rating)}</div>
+            <div class="chevron" aria-hidden="true"></div>
+          </div>
         </div>
 
         <div class="details">
-          <div>🎬 分类：${m.category || "未知"}</div>
-          <div>🎭 类型：${m.genre || "未知"}</div>
-          <div>🎦 导演：${m.director || "未知"}</div>
-          <div>👥 主演：${m.actors || "未知"}</div>
+          <div class="details-inner">
+            <div class="meta-grid">
+              <div>🎬 分类：${escapeHTML(getCategoryName(m.category))}</div>
+              <div>🎭 类型：${escapeHTML(m.genre || "未知")}</div>
+              <div>🎦 导演：${escapeHTML(m.director || "未知")}</div>
+              <div>👥 主演：${escapeHTML(m.actors || "未知")}</div>
+            </div>
+            <div class="synopsis">📖 简介：${escapeHTML(m.synopsis || "无")}</div>
 
-          <div style="margin-top:8px;">💭 影评：</div>
+            <div class="section-label">💭 影评：</div>
 
-          ${
-            movieReviews.length > 0
-              ? movieReviews.map(r => `
-                  <div class="review">
-                    <div>⭐ 评分：${r.rating || "未知"} / 10</div>
-                    <div style="margin-top:4px;">${r.review || "暂无内容"}</div>
-                  </div>
-                `).join("")
-              : "<div class='review'>暂无影评</div>"
-          }
+            ${
+              movieReviews.length > 0
+                ? movieReviews.map(r => `
+                    <div class="review">
+                      <div>⭐ 评分：${escapeHTML(r.rating || "未知")} / 10</div>
+                      <div style="margin-top:4px;">${escapeLines(r.review || "暂无内容")}</div>
+                    </div>
+                  `).join("")
+                : "<div class='review'>暂无影评</div>"
+            }
+          </div>
         </div>
       `;
 
       div.addEventListener("click", () => {
-        const details = div.querySelector(".details");
-        details.style.display =
-          details.style.display === "block" ? "none" : "block";
+        toggleMovie(div);
+      });
+
+      div.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          toggleMovie(div);
+        }
       });
 
       list.appendChild(div);
@@ -257,6 +665,14 @@ window.onload = () => {
   tagFilter.addEventListener("change", render);
   sortSelect.addEventListener("change", render);
   categoryFilter.addEventListener("change", render);
+  window.addEventListener("scroll", updateBackTop, { passive: true });
+  backTop.addEventListener("click", () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  });
+  updateBackTop();
 };
 </script>
 
